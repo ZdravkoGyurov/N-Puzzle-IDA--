@@ -1,6 +1,5 @@
 package ida;
 
-import java.util.List;
 import java.util.Scanner;
 
 public class IterativeDeepeningAStar {
@@ -12,23 +11,28 @@ public class IterativeDeepeningAStar {
         final Scanner scanner = new Scanner(System.in);
         final IDAUtil idaUtil = new IDAUtil();
 
-        int numberOfElements = scanner.nextInt();
+        final int numberOfElements = scanner.nextInt();
         int zeroIndex = scanner.nextInt();
         if(zeroIndex == -1) zeroIndex = numberOfElements;
 
-        int boardSize = (int) Math.sqrt(numberOfElements + 1);
-        int[][] rootBoard = new int[boardSize][boardSize];
+        final int boardSize = (int) Math.sqrt(numberOfElements + 1);
+        final int[][] rootBoard = new int[boardSize][boardSize];
         initBoard(rootBoard, boardSize, scanner);
 
-        int[] rowCoordinates = idaUtil.generateRowCoordinates(boardSize, numberOfElements);
-        int[] colCoordinates = idaUtil.generateColCoordinates(boardSize, numberOfElements);
+        final int[] rowCoordinates = idaUtil.generateRowCoordinates(boardSize, numberOfElements);
+        final int[] colCoordinates = idaUtil.generateColCoordinates(boardSize, numberOfElements);
         idaUtil.fixCoordinates(rowCoordinates, colCoordinates, zeroIndex, boardSize);
 
-        int rootHeuristic = idaUtil.heuristicBoard(rootBoard, rowCoordinates, colCoordinates);
+        final int rootHeuristic = idaUtil.heuristicBoard(rootBoard, rowCoordinates, colCoordinates);
 
         final int[][] goalBoard = idaUtil.generateGoalBoard(boardSize, rowCoordinates, colCoordinates);
 
-        idaUtil.runIDAStar(rootBoard, zeroRow, zeroCol, rootHeuristic, goalBoard, zeroIndex);
+        if(idaUtil.isSolvable(rootBoard)) {
+            idaUtil.runIDAStar(rootBoard, zeroRow, zeroCol, rootHeuristic, goalBoard, zeroIndex);
+        } else {
+            System.out.println("BOARD IS NOT SOLVABLE");
+        }
+
     }
 
     private static void initBoard(final int[][] board, final int boardSize, final Scanner scanner) {

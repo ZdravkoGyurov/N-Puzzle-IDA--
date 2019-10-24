@@ -1,6 +1,5 @@
 package ida;
 
-import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -102,10 +101,6 @@ final public class IDAUtil {
         }
     }
 
-    public boolean validPosition(final int row, final int col, final int boardSize) {
-        return row >= 0 && row < boardSize && col >= 0 && col < boardSize;
-    }
-
     public int[][] generateGoalBoard(final int boardSize, final int[] rowCoordinates, final int[] colCoordinates) {
         int[][] goalBoard = new int[boardSize][boardSize];
 
@@ -131,31 +126,12 @@ final public class IDAUtil {
                 printPath();
                 return;
             }
-            if(temp == 15) { // TODO ???
+            if(temp >= 100) { // TODO ???
                 System.out.println("NOT FOUND");
                 return;
             }
             threshold = temp;
         }
-    }
-
-    private void printPath() {
-        Node iter = reachedGoal;
-        while(iter.getParent() != null) {
-            printBoard(iter.getBoardSnapshot());
-            iter = iter.getParent();
-        }
-    }
-
-    private void printBoard(int[][] board) {
-        System.out.println("-----");
-        for(int i = 0; i < board.length; i++) {
-            for(int j = 0; j < board.length; j++) {
-                System.out.print(board[i][j] + " ");
-            }
-            System.out.println();
-        }
-        System.out.println("-----");
     }
 
     private int search(final Node node, final int g, final int threshold) {
@@ -181,6 +157,25 @@ final public class IDAUtil {
             }
         }
         return min;
+    }
+
+    private void printPath() {
+        Node iter = reachedGoal;
+        while(iter.getParent() != null) {
+            printBoard(iter.getBoardSnapshot());
+            iter = iter.getParent();
+        }
+    }
+
+    private void printBoard(final int[][] board) {
+        System.out.println("----------");
+        for(int i = 0; i < board.length; i++) {
+            for(int j = 0; j < board.length; j++) {
+                System.out.print(board[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("----------");
     }
 
     private List<Node> nextNodes(final Node node) {

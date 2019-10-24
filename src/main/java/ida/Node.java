@@ -29,7 +29,7 @@ public class Node {
         return zeroRow;
     }
 
-    public void setZeroRow(int zeroRow) {
+    public void setZeroRow(final int zeroRow) {
         this.zeroRow = zeroRow;
     }
 
@@ -37,7 +37,7 @@ public class Node {
         return zeroCol;
     }
 
-    public void setZeroCol(int zeroCol) {
+    public void setZeroCol(final int zeroCol) {
         this.zeroCol = zeroCol;
     }
 
@@ -58,7 +58,7 @@ public class Node {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         final Node node = (Node) o;
