@@ -21,40 +21,16 @@ public class Node {
         return boardSnapshot;
     }
 
-    public void setBoardSnapshot(final int[][] boardSnapshot) {
-        this.boardSnapshot = boardSnapshot;
-    }
-
     public int getZeroRow() {
         return zeroRow;
-    }
-
-    public void setZeroRow(final int zeroRow) {
-        this.zeroRow = zeroRow;
     }
 
     public int getZeroCol() {
         return zeroCol;
     }
 
-    public void setZeroCol(final int zeroCol) {
-        this.zeroCol = zeroCol;
-    }
-
-    public int getHeuristic() {
-        return heuristic;
-    }
-
-    public void setHeuristic(final int heuristic) {
-        this.heuristic = heuristic;
-    }
-
     public Node getParent() {
         return parent;
-    }
-
-    public void setParent(final Node parent) {
-        this.parent = parent;
     }
 
     @Override
