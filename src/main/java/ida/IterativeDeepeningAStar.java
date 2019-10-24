@@ -1,44 +1,45 @@
 package ida;
 
+import java.util.List;
 import java.util.Scanner;
 
 public class IterativeDeepeningAStar {
 
+    private static int zeroRow = 0;
+    private static int zeroCol = 0;
+
     public static void main(String[] args) {
         final Scanner scanner = new Scanner(System.in);
+        final IDAUtil idaUtil = new IDAUtil();
+
         int numberOfElements = scanner.nextInt();
         int zeroIndex = scanner.nextInt();
         if(zeroIndex == -1) zeroIndex = numberOfElements;
-//        int[] puzzle = new int[numberOfElements + 1];
-//        initPuzzle(puzzle, numberOfElements, scanner);
+
         int boardSize = (int) Math.sqrt(numberOfElements + 1);
-        int[][] board = new int[boardSize][boardSize];
-        initBoard(board, boardSize, scanner);
+        int[][] rootBoard = new int[boardSize][boardSize];
+        initBoard(rootBoard, boardSize, scanner);
 
-        int[] rowCoordinates = IDAUtil.generateRowCoordinates(boardSize, numberOfElements);
-        int[] colCoordinates = IDAUtil.generateColCoordinates(boardSize, numberOfElements);
-        IDAUtil.fixCoordinates(rowCoordinates, colCoordinates, zeroIndex, boardSize);
+        int[] rowCoordinates = idaUtil.generateRowCoordinates(boardSize, numberOfElements);
+        int[] colCoordinates = idaUtil.generateColCoordinates(boardSize, numberOfElements);
+        idaUtil.fixCoordinates(rowCoordinates, colCoordinates, zeroIndex, boardSize);
 
-        int h = IDAUtil.heuristicBoard(board, rowCoordinates, colCoordinates);
+        int rootHeuristic = idaUtil.heuristicBoard(rootBoard, rowCoordinates, colCoordinates);
 
-//        int[] coordinates = IDAUtil.generateCoordinates(numberOfElements, zeroIndex);
-//        int h = IDAUtil.heuristicPuzzle(puzzle, coordinates);
+        final int[][] goalBoard = idaUtil.generateGoalBoard(boardSize, rowCoordinates, colCoordinates);
 
-        System.out.println("heuristic: " + h);
-        System.out.println("solvable: " + IDAUtil.isSolvable(board));
+        idaUtil.runIDAStar(rootBoard, zeroRow, zeroCol, rootHeuristic, goalBoard, zeroIndex);
     }
 
     private static void initBoard(final int[][] board, final int boardSize, final Scanner scanner) {
         for(int i = 0; i < boardSize; i++) {
             for(int j = 0; j < boardSize; j++) {
                 board[i][j] = scanner.nextInt();
+                if(board[i][j] == 0) {
+                    zeroRow = i;
+                    zeroCol = j;
+                }
             }
-        }
-    }
-
-    private static void initPuzzle(final int[] puzzle, final int numberOfElements, final Scanner scanner) {
-        for(int i = 0; i < numberOfElements + 1; i++) {
-            puzzle[i] = scanner.nextInt();
         }
     }
 }

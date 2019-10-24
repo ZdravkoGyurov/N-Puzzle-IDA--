@@ -1,12 +1,23 @@
 package ida;
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 final public class IDAUtil {
 
-    private IDAUtil() {
+    private int[] rowCoordinates;
+    private int[] colCoordinates;
+    private Node root;
+    private Node goal;
+    private static final int FOUND = -1;
+    private static final int NOT_FOUND = 0;
+
+    public IDAUtil() {
         // Util class
     }
 
-    public static int heuristicBoard(final int[][] board, final int[] rowCoordinates, final int[] colCoordinates) {
+    public int heuristicBoard(final int[][] board, final int[] rowCoordinates, final int[] colCoordinates) {
         int result = 0;
         for(int i = 0; i < board.length; i++) {
             for(int j = 0; j < board.length; j++) {
@@ -20,34 +31,7 @@ final public class IDAUtil {
         return result;
     }
 
-    public static int heuristicPuzzle(final int[] puzzle, final int[] coordinates) {
-        int result = 0;
-        for(int i = 0; i < puzzle.length; i++) {
-            int currentElement = puzzle[i];
-            if(currentElement != 0 && currentElement <= puzzle.length - 1) {
-                result += Math.abs(i - coordinates[currentElement]);
-            }
-        }
-        return result;
-    }
-
-    public static int[] generateCoordinates(final int numberOfElements, int zeroIndex) {
-        int[] coordinates = new int[numberOfElements + 1];
-
-        coordinates[0] = zeroIndex;
-
-        for(int i = 1; i < numberOfElements + 1; i++) {
-            if(i <= zeroIndex) {
-                coordinates[i] = i - 1;
-            } else {
-                coordinates[i] = i;
-            }
-        }
-
-        return coordinates;
-    }
-
-    public static boolean isSolvable(final int[][] board) {
+    public boolean isSolvable(final int[][] board) {
         int puzzle[] = new int[board.length * board.length];
         int inversionCount = 0;
         int index = 0;
@@ -87,23 +71,25 @@ final public class IDAUtil {
         }
     }
 
-    public static int[] generateRowCoordinates(final int boardSize, final int numberOfElements) {
+    public int[] generateRowCoordinates(final int boardSize, final int numberOfElements) {
         int[] rowCoordinates = new int[numberOfElements];
         for(int i = 0; i < numberOfElements; i++) {
             rowCoordinates[i] = i / boardSize;
         }
+        this.rowCoordinates = rowCoordinates;
         return rowCoordinates;
     }
 
-    public static int[] generateColCoordinates(final int boardSize, final int numberOfElements) {
+    public int[] generateColCoordinates(final int boardSize, final int numberOfElements) {
         int[] colCoordinates = new int[numberOfElements];
         for(int i = 0; i < numberOfElements; i++) {
             colCoordinates[i] = i % boardSize;
         }
+        this.colCoordinates = colCoordinates;
         return colCoordinates;
     }
 
-    public static void fixCoordinates(final int[] rowCoordinates, final int[] colCoordinates, final int zeroIndex, final int boardSize) {
+    public void fixCoordinates(final int[] rowCoordinates, final int[] colCoordinates, final int zeroIndex, final int boardSize) {
         for(int i = 0; i < rowCoordinates.length; i++) {
             if(i >= zeroIndex) {
                 colCoordinates[i]++;
@@ -112,11 +98,111 @@ final public class IDAUtil {
                     rowCoordinates[i]++;
                 }
             }
-            System.out.println(rowCoordinates[i] + " " + colCoordinates[i]);
         }
     }
 
-    public static boolean validPosition(final int row, final int col, final int boardSize) {
+    public boolean validPosition(final int row, final int col, final int boardSize) {
         return row >= 0 && row < boardSize && col >= 0 && col < boardSize;
+    }
+
+    public int[][] generateGoalBoard(final int boardSize, final int[] rowCoordinates, final int[] colCoordinates) {
+        int[][] goalBoard = new int[boardSize][boardSize];
+
+        for(int i = 0; i < rowCoordinates.length; i++) {
+            goalBoard[rowCoordinates[i]][colCoordinates[i]] = i + 1;
+        }
+
+        return goalBoard;
+    }
+
+    public int runIDAStar(final int[][] initBoard, final int zeroRow, final int zeroCol, final int rootHeuristic, final int[][] goalBoard, final int zeroIndex) {
+        root = new Node(initBoard, zeroRow, zeroCol, rootHeuristic, null);
+        final int goalZeroRow = zeroIndex / goalBoard.length, goalZeroCol = zeroIndex / goalBoard.length;
+        goal = new Node(goalBoard, goalZeroRow, goalZeroCol, 0, null);
+
+        int threshold = rootHeuristic;
+
+        while(true) {
+            int temp = search(root, 0, threshold);
+
+            if(temp == FOUND) {
+                return FOUND;
+            }
+            if(temp == _____) {
+                return NOT_FOUND;
+            }
+            threshold = temp;
+        }
+    }
+
+    private int search(final Node node, final int g, final int threshold) {
+        final int f = g + heuristicBoard(node.getBoardSnapshot(), rowCoordinates, colCoordinates);
+
+        if(f > threshold) {
+            return f;
+        }
+        if(node.equals(goal)) {
+            return FOUND;
+        }
+
+        int min = Integer.MAX_VALUE;
+
+        for(final Node tempnode : nextNodes(node)) {
+            int temp = search(tempnode, g, threshold); // TODO: + cost(node, tempnode)
+            if(temp == FOUND) {
+                return FOUND;
+            }
+            if(temp < min) {
+                min = temp;
+            }
+        }
+        return min;
+    }
+
+    private List<Node> nextNodes(final Node node) {
+        List<Node> nextNodes = new LinkedList<>();
+
+        int oldRow = node.getZeroRow(), oldCol = node.getZeroCol();
+
+        if(node.getZeroRow() != 0) { // can move up
+            int[][] boardU = generateBoardCopy(node.getBoardSnapshot());
+            int newRow = node.getZeroRow() - 1, newCol = node.getZeroCol();
+            swapZero(boardU, oldRow, oldCol, newRow, newCol);
+            int h = heuristicBoard(boardU, rowCoordinates, colCoordinates);
+            nextNodes.add(new Node(boardU, newRow, newCol, h, node));
+        }
+        if(node.getZeroRow() != node.getBoardSnapshot().length - 1) { // can move down
+            int[][] boardD = generateBoardCopy(node.getBoardSnapshot());
+            int newRow = node.getZeroRow() + 1, newCol = node.getZeroCol();
+            swapZero(boardD, oldRow, oldCol, newRow, newCol);
+            int h = heuristicBoard(boardD, rowCoordinates, colCoordinates);
+            nextNodes.add(new Node(boardD, newRow, newCol, h, node));
+        }
+        if(node.getZeroCol() != 0) { // can move left
+            int[][] boardL = generateBoardCopy(node.getBoardSnapshot());
+            int newRow = node.getZeroRow(), newCol = node.getZeroCol() - 1;
+            swapZero(boardL, oldRow, oldCol, newRow, newCol);
+            int h = heuristicBoard(boardL, rowCoordinates, colCoordinates);
+            nextNodes.add(new Node(boardL, newRow, newCol, h, node));
+        }
+        if(node.getZeroCol() != node.getBoardSnapshot().length - 1) { // can move right
+            int[][] boardR = generateBoardCopy(node.getBoardSnapshot());
+            int newRow = node.getZeroRow(), newCol = node.getZeroCol() + 1;
+            swapZero(boardR, oldRow, oldCol, newRow, newCol);
+            int h = heuristicBoard(boardR, rowCoordinates, colCoordinates);
+            nextNodes.add(new Node(boardR, newRow, newCol, h, node));
+        }
+
+        return nextNodes;
+    }
+
+    private int[][] generateBoardCopy(final int[][] board) {
+        return Arrays.stream(board).map(int[]::clone).toArray(int[][]::new);
+    }
+
+    private void swapZero(final int[][] board, final int oldRow, final int oldCol, final int newRow, final int newCol) {
+        int temp = board[oldRow][oldCol];
+        board[oldRow][oldCol] = board[newRow][newCol];
+        board[newRow][newCol] = temp;
     }
 }
