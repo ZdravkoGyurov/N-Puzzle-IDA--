@@ -61,8 +61,16 @@ public class Node {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Node node = (Node) o;
-        return Arrays.equals(boardSnapshot, node.boardSnapshot);
+        final Node node = (Node) o;
+
+        for(int i = 0; i < this.boardSnapshot.length; i++) {
+            for(int j = 0; j < this.boardSnapshot.length; j++) {
+                if(this.boardSnapshot[i][j] != node.getBoardSnapshot()[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     @Override

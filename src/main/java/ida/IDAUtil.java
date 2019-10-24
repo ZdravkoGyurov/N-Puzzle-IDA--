@@ -1,5 +1,6 @@
 package ida;
 
+import java.sql.SQLOutput;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +12,7 @@ final public class IDAUtil {
     private Node root;
     private Node goal;
     private static final int FOUND = -1;
-    private static final int NOT_FOUND = 0;
+    private Node reachedGoal;
 
     public IDAUtil() {
         // Util class
@@ -115,7 +116,7 @@ final public class IDAUtil {
         return goalBoard;
     }
 
-    public int runIDAStar(final int[][] initBoard, final int zeroRow, final int zeroCol, final int rootHeuristic, final int[][] goalBoard, final int zeroIndex) {
+    public void runIDAStar(final int[][] initBoard, final int zeroRow, final int zeroCol, final int rootHeuristic, final int[][] goalBoard, final int zeroIndex) {
         root = new Node(initBoard, zeroRow, zeroCol, rootHeuristic, null);
         final int goalZeroRow = zeroIndex / goalBoard.length, goalZeroCol = zeroIndex / goalBoard.length;
         goal = new Node(goalBoard, goalZeroRow, goalZeroCol, 0, null);
@@ -126,13 +127,35 @@ final public class IDAUtil {
             int temp = search(root, 0, threshold);
 
             if(temp == FOUND) {
-                return FOUND;
+                System.out.println("FOUND");
+                printPath();
+                return;
             }
-            if(temp == _____) {
-                return NOT_FOUND;
+            if(temp == 15) { // TODO ???
+                System.out.println("NOT FOUND");
+                return;
             }
             threshold = temp;
         }
+    }
+
+    private void printPath() {
+        Node iter = reachedGoal;
+        while(iter.getParent() != null) {
+            printBoard(iter.getBoardSnapshot());
+            iter = iter.getParent();
+        }
+    }
+
+    private void printBoard(int[][] board) {
+        System.out.println("-----");
+        for(int i = 0; i < board.length; i++) {
+            for(int j = 0; j < board.length; j++) {
+                System.out.print(board[i][j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("-----");
     }
 
     private int search(final Node node, final int g, final int threshold) {
@@ -142,13 +165,14 @@ final public class IDAUtil {
             return f;
         }
         if(node.equals(goal)) {
+            reachedGoal = node;
             return FOUND;
         }
 
         int min = Integer.MAX_VALUE;
 
         for(final Node tempnode : nextNodes(node)) {
-            int temp = search(tempnode, g, threshold); // TODO: + cost(node, tempnode)
+            int temp = search(tempnode, g + 1, threshold);
             if(temp == FOUND) {
                 return FOUND;
             }
