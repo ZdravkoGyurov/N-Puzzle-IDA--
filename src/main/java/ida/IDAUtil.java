@@ -1,7 +1,6 @@
 package ida;
 
 import java.util.*;
-import java.util.stream.Stream;
 
 /**
  * Utility class with helper methods for IDA*
@@ -173,8 +172,8 @@ public final class IDAUtil {
             int temp = search(root, 0, threshold);
 
             if (temp == FOUND) {
-                System.out.println("FOUND");
-                printPath(root, true, true);
+                // not printing start, not printing boards, printing directions
+                printPath(null, false, true);
                 return;
             }
 //            if (temp >= 100) { // TODO ???
@@ -241,14 +240,15 @@ public final class IDAUtil {
         final Iterator<int[][]> boardIterator = stackBoardPathToGoal.iterator();
         final Iterator<String> directionIterator = stackDirectionPathToGoal.iterator();
 
-        while(boardIterator.hasNext() && directionIterator.hasNext()) {
-            if(printDirectionPath) {
+        while (boardIterator.hasNext() && directionIterator.hasNext()) {
+            if (printDirectionPath) {
                 System.out.println(directionIterator.next());
             }
-            if(printBoardPath) {
+            if (printBoardPath) {
                 printBoard(boardIterator.next());
             }
         }
+        System.out.println(stackBoardPathToGoal.size());
     }
 
     /**
@@ -279,17 +279,17 @@ public final class IDAUtil {
 
         int oldRow = node.getZeroRow(), oldCol = node.getZeroCol();
 
-        if (node.getZeroRow() != 0) { // can move up
-            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow - 1, oldCol, "U")); // UP
+        if (node.getZeroRow() != 0) { // zero can move up
+            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow - 1, oldCol, "down")); // element moves down
         }
-        if (node.getZeroRow() != node.getBoardSnapshot().length - 1) { // can move down
-            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow + 1, oldCol, "D")); // DOWN
+        if (node.getZeroRow() != node.getBoardSnapshot().length - 1) { // zero can move down
+            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow + 1, oldCol, "up")); // element moves up
         }
-        if (node.getZeroCol() != 0) { // can move left
-            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow, oldCol - 1, "L")); // LEFT
+        if (node.getZeroCol() != 0) { // zero can move left
+            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow, oldCol - 1, "right")); // element moves right
         }
-        if (node.getZeroCol() != node.getBoardSnapshot().length - 1) { // can move right
-            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow, oldCol + 1, "R")); // RIGHT
+        if (node.getZeroCol() != node.getBoardSnapshot().length - 1) { // zero can move right
+            nextNodes.add(movedZeroNode(node, oldRow, oldCol, oldRow, oldCol + 1, "left")); // element moves left
         }
 
         return nextNodes;

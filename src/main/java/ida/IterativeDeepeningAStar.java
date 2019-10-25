@@ -32,12 +32,7 @@ public final class IterativeDeepeningAStar {
 
         // Check if board is solvable. If it's solvable, run IDA*.
         if (IDAUtil.isSolvable(rootBoard)) {
-            final long start = System.currentTimeMillis();
-
             IDAUtil.runIDAStar(rootBoard, zeroRow, zeroCol, rootHeuristic, goalBoard, zeroIndex);
-
-            final long finish = System.currentTimeMillis();
-            System.out.println(finish - start);
         } else {
             System.out.println("BOARD IS NOT SOLVABLE");
         }
