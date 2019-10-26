@@ -8,6 +8,7 @@ import java.util.*;
 public final class IDAUtil {
 
     private static final int FOUND = -1;
+    private static final int ESTIMATED_MAXIMUM_POSSIBLE_F_VALUE = 100;
     private static int[] rowCoordinates;
     private static int[] colCoordinates;
     private static Node goal;
@@ -161,6 +162,16 @@ public final class IDAUtil {
         return goalBoard;
     }
 
+    /**
+     * Method starting the IDA* algorithm used to solve the N puzzle
+     *
+     * @param initBoard     board matrix representing the starting position
+     * @param zeroRow       row coordinate of the zero/blank tile in the starting position board
+     * @param zeroCol       column coordinate of the zero/blank tile in the starting position board
+     * @param rootHeuristic heuristic estimate of the cost to travel to the goal from the starting position board
+     * @param goalBoard     board matrix representing the goal position
+     * @param zeroIndex     index of the zero/blank tile in the goal position board
+     */
     public static void runIDAStar(final int[][] initBoard, final int zeroRow, final int zeroCol, final int rootHeuristic, final int[][] goalBoard, final int zeroIndex) {
         final Node root = new Node(initBoard, zeroRow, zeroCol, rootHeuristic, null, "S");
         final int goalZeroRow = zeroIndex / goalBoard.length, goalZeroCol = zeroIndex / goalBoard.length;
@@ -173,17 +184,26 @@ public final class IDAUtil {
 
             if (temp == FOUND) {
                 // not printing start, not printing boards, printing directions
-                printPath(null, false, true);
+                printPath(false, true);
                 return;
             }
-//            if (temp >= 100) { // TODO ???
-//                System.out.println("NOT FOUND");
-//                return;
-//            }
+            if (temp >= ESTIMATED_MAXIMUM_POSSIBLE_F_VALUE) {
+                System.out.println("NOT FOUND");
+                return;
+            }
             threshold = temp;
         }
     }
 
+    /**
+     * Recursive method executing IDA* algorithm, iterating over the nodes, checking all possible further moves and
+     * choosing the best option depending on the heuristic cost of the children.
+     *
+     * @param node      node the algorithm is starting from
+     * @param g         the cost to travel from this node to the parent
+     * @param threshold threshold for the current run of the algorithm
+     * @return either -1 if goal was found or a new threshold value
+     */
     private static int search(final Node node, final int g, final int threshold) {
         final int f = g + heuristic(node.getBoardSnapshot(), rowCoordinates, colCoordinates);
 
@@ -212,12 +232,10 @@ public final class IDAUtil {
     /**
      * Method for printing the path from the start to the goal position
      *
-     * @param start              optional parameter start to print the starting position, can be null to avoid printing starting
-     *                           position
      * @param printBoardPath     flag determining if board path should be printed
      * @param printDirectionPath flag determining if Direction path should be printed
      */
-    private static void printPath(final Node start, final boolean printBoardPath, final boolean printDirectionPath) {
+    private static void printPath(final boolean printBoardPath, final boolean printDirectionPath) {
         Node iter = reachedGoal;
         final Deque<int[][]> stackBoardPathToGoal = new ArrayDeque<>();
         final Deque<String> stackDirectionPathToGoal = new ArrayDeque<>();
@@ -228,17 +246,10 @@ public final class IDAUtil {
             iter = iter.getParent();
         }
 
-        if (start != null) {
-            if (printDirectionPath) {
-                System.out.println(start.getDirection());
-            }
-            if (printBoardPath) {
-                printBoard(start.getBoardSnapshot());
-            }
-        }
-
         final Iterator<int[][]> boardIterator = stackBoardPathToGoal.iterator();
         final Iterator<String> directionIterator = stackDirectionPathToGoal.iterator();
+
+        System.out.println(stackBoardPathToGoal.size());
 
         while (boardIterator.hasNext() && directionIterator.hasNext()) {
             if (printDirectionPath) {
@@ -248,7 +259,6 @@ public final class IDAUtil {
                 printBoard(boardIterator.next());
             }
         }
-        System.out.println(stackBoardPathToGoal.size());
     }
 
     /**
